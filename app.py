@@ -1,6 +1,9 @@
 from utils.file_manager import save_uploaded_file, read_file_content
 from utils.agent_brain import StudyAgent
 import streamlit as st  # Web arayüzünü oluşturmak için Streamlit kütüphanesini dahil ediyoruz.
+from dotenv import load_dotenv
+
+load_dotenv()  # .env dosyasını projenin en başında sisteme zorla yüklüyoruz
 
 # Tarayıcı sekmesinde görünecek olan sayfa başlığı, ikon ve sayfa düzenini (geniş ekran) ayarlıyoruz.
 st.set_page_config(
@@ -19,8 +22,8 @@ st.write("---")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Kullanıcıyı projenin mevcut durumu hakkında bilgilendiren mavi bir bilgi kutusu ekliyoruz.
-st.info("Bu proje şu an geliştirme aşamasındadır. Yakında LLM (Büyük Dil Modeli) ve Agent entegrasyonları eklenecektir.")
+# Projenin beyninin başarıyla bağlandığını belirten tatlı bir yeşil kutu
+st.success("🤖 Llama 3.3 Süper Bilgisayarı Bağlandı! Ders notlarınızı analiz etmeye hazır.")
 
 # Kullanıcının ders notlarını yükleyebileceği bir dosya yükleme alanı oluşturuyoruz.
 # Şimdilik sadece düz metin (.txt) formatındaki dosyaları kabul ediyoruz.
@@ -67,27 +70,26 @@ if uploaded_file is not None:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+    # Kullanıcıdan yeni mesaj alma alanı (Chat Input)
     if user_input := st.chat_input("Ders notu hakkında bir soru sorun..."):
-        with st.chat_message("user"):
-            st.markdown(user_input)
+        # Kullanıcının yazdığı mesajı hafızaya kaydet
         st.session_state.messages.append({"role": "user", "content": user_input})
         
-        with st.chat_message("assistant"):
-            with st.spinner("Düşünüyor..."):
-                prompt = f"Kullanıcı ders notuna dayanarak şu soruyu sordu: {user_input}\n\nNot İçeriği:\n{file_content}"
-                
-                try:
-                    response = agent.client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
-                        messages=[
-                            {"role": "system", "content": agent.system_prompt},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.5
-                    )
-                    answer = response.choices[0].message.content
-                    st.markdown(answer)
-                    st.session_state.messages.append({"role": "assistant", "content": answer})
-                    st.rerun()  # 4. BURAYA EKLENDİ (Cevap hafızaya yazılınca ekranı yeniler)
-                except Exception as e:
-                    st.error(f"Hata oluştu: {str(e)}")
+        # Agent'ı ve LLM'i devreye sokup cevap üretiyoruz
+        prompt = f"Kullanıcı ders notuna dayanarak şu soruyu sordu: {user_input}\n\nNot İçeriği:\n{file_content}"
+        
+        try:
+            response = agent.client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": agent.system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5
+            )
+            answer = response.choices[0].message.content
+            # Asistanın cevabını hafızaya ekleyip sayfayı yeniliyoruz, böylece akış bozulmuyor
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+            st.rerun()
+        except Exception as e:
+            st.error(f"Hata oluştu: {str(e)}")

@@ -8,11 +8,11 @@ load_dotenv()
 class StudyAgent:
     def __init__(self, document_content: str = ""):
         # Groq, OpenAI kütüphanesini destekler. 
-        # Sadece gitmesi gereken adresi (base_url) Groq olarak değiştiriyoruz.
         self.client = OpenAI(
             base_url="https://api.groq.com/openai/v1",
-            api_key=os.getenv("GROQ_API_KEY")
+            api_key=os.getenv("GROQ_API_KEY") # Sadece bunu bırakıyoruz, varsayılan değeri sildik
         )
+        
         self.document_content = document_content
         
         # Agent'ın kişiliği ve sistem talimatı
