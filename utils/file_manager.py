@@ -37,3 +37,16 @@ def read_file_content(file_path: str) -> str:
             
     else:
         return "⚠️ Desteklenmeyen dosya formatı!"
+    
+def create_text_chunks(text: str, chunk_size: int = 4000, chunk_overlap: int = 400) -> list:
+    """
+    Büyük metinleri modelin limitlerini aşmayacak şekilde küçük parçalara (chunks) böler.
+    chunk_overlap: Parçaların birbiriyle çakışma miktarıdır, böylece konu bütünlüğü kaybolmaz.
+    """
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        start += chunk_size - chunk_overlap
+    return chunks    
