@@ -26,8 +26,8 @@ if "messages" not in st.session_state:
 st.success("🤖 Llama 3.3 Süper Bilgisayarı Bağlandı! Ders notlarınızı analiz etmeye hazır.")
 
 # Kullanıcının ders notlarını yükleyebileceği bir dosya yükleme alanı oluşturuyoruz.
-# Şimdilik sadece düz metin (.txt) formatındaki dosyaları kabul ediyoruz.
-uploaded_file = st.file_uploader("Ders notunu veya özetini yükle (.txt)", type=["txt"])
+# Şimdilik pdf ve txt formatındaki dosyaları kabul ediyoruz.
+uploaded_file = st.file_uploader("Ders notunu veya özetini yükle (.txt, .pdf)", type=["txt", "pdf"])
 
 # Eğer kullanıcı bir dosya yüklediyse bu blok çalışır:
 if uploaded_file is not None:
