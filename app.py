@@ -66,9 +66,47 @@ if uploaded_file is not None:
     st.write("---")
     st.subheader("💬 Asistan ile Canlı Sohbet")
 
+    # Geçmiş mesajları ekrana basan döngü
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            # Eğer asistan mesajı bir flashcard çıktısı ise özel kart tasarımı yap
+            if message["role"] == "assistant" and "### KART" in message["content"]:
+                st.subheader("🗂️ Üretilen Bilgi Kartları")
+                
+                # Çıktıyı kartlara bölüp listeliyoruz
+                raw_cards = message["content"].split("### KART")
+                for raw_card in raw_cards:
+                    if raw_card.strip():
+                        card_content = raw_card.strip()
+                        st.markdown(
+                            f"""
+                            <div style="
+                                background-color: #262730; 
+                                padding: 20px; 
+                                border-radius: 10px; 
+                                border-left: 5px solid #FF4B4B; 
+                                margin-bottom: 15px;
+                                box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+                            ">
+                                <strong>🃏 KART</strong><br><br>
+                                {card_content}
+                            </div>
+                            """, 
+                            unsafe_allow_html=True
+                        )
+                
+                # --- BUGÜNÜN ZAFERİ: Markdown İndirme Butonu ---
+                st.write("---")
+                st.download_button(
+                    label="📥 Bu Kartları Markdown Olarak İndir",
+                    data=message["content"],
+                    file_name="agentic_notes_flashcards.md",
+                    mime="text/markdown",
+                    help="Kartları .md formatında indirerek dilediğin cihazda çalışabilirsin!"
+                )
+            else:
+                # Normal kullanıcı mesajları ve düz asistan yanıtları eski usul görünsün
+                st.markdown(message["content"])
 
     # Kullanıcıdan yeni mesaj alma alanı (Chat Input)
     if user_input := st.chat_input("Ders notu hakkında bir soru sorun..."):
