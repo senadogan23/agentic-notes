@@ -1,0 +1,21 @@
+YAZILIM MÜHENDİSLİĞİ VE YAPAY ZEKA DERS NOTLARI
+
+BÖLÜM 1: YAPAY ZEKA AGENT (AJAN) MİMARİSİ
+Yapay Zeka Ajanları (AI Agents), bulundukları ortamı algılayıcılar (sensors) aracılığıyla algılayan ve eyleyiciler (actuators) kullanarak o ortamda mantıklı kararlar alan otonom sistemlerdir. Sıradan sohbet robotlarından (chatbot) en büyük farkları; belirli bir hedefe ulaşmak için kendi kendilerine plan yapabilmeleri, alt görevler oluşturabilmeleri ve dış dünyadaki araçları (tools) dinamik olarak kullanabilmeleridir.
+
+Bir AI Agent mimarisi genel olarak dört ana bileşenden oluşur:
+1. Profil oluşturma (Profiling): Agent'ın rolünün, amacının ve davranış sınırlarının belirlenmesi.
+2. Hafıza (Memory): Kısa vadeli (sohbet geçmişi) ve uzun vadeli (Vektör veri tabanları) bilgi saklama mekanizması.
+3. Planlama (Planning): Büyük görevleri küçük adımlara bölme ve geçmiş hatalardan öğrenme yeteneği.
+4. Araç Kullanımı (Tools): Agent'ın internette arama yapması, kod çalıştırması veya dosya okuyup/yazması için dış API'lara erişebilmesi.
+
+BÖLÜM 2: MODEL TABANLI AJANLAR VE RECT (REASON AND ACT) PATERNİ
+Modern yapay zeka ajanları, karmaşık problemleri çözerken ReAct (Düşün ve Harekete Geç) modelini uygular. Bu süreçte ajan önce bir "Düşünce" (Thought) üretir, ardından hangi aracı kullanacağına karar vererek bir "Aksiyon" (Action) alır ve son olarak araçtan gelen "Gözlem" (Observation) sonucunu analiz eder. Bu döngü hedefe ulaşılana kadar tekrarlanır.
+
+BÖLÜM 3: SİBER GÜVENLİKTE AI VE PROMPT INJECTION TEHDİDİ
+Yapay zeka sistemlerinin yaygınlaşmasıyla birlikte yeni siber güvenlik açıkları ortaya çıkmıştır. Bunlardan en tehlikelisi "Prompt Injection" (Prompt Enjeksiyonu) saldırılarıdır. Bu saldırı türünde saldırgan, yapay zekaya verilen girdi alanlarına (örneğin ders notunun içine) gizli talimatlar yerleştirerek sistemin ana kurallarını (System Prompt) çiğnemesini hedefler. 
+
+Prompt Injection saldırılarına karşı alınabilecek temel savunma yöntemleri şunlardır:
+- Kara Liste (Blacklisting): Zararlı kelimelerin ve sistem komutlarının filtrelenmesi.
+- Düzenli İfadeler (Regex): Girdilerin belirli şablonlara uyup uymadığının kontrol edilmesi.
+- LLM Tabanlı Filtreleme: Gelen girdinin bir saldırı girişimi olup olmadığını denetleyen ikinci bir güvenlik modelinin kullanılması.

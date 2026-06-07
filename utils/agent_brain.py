@@ -44,8 +44,9 @@ class StudyAgent:
                 prompt = f"Aşağıdaki ders notu parçasına (Kısım {index+1}) dayanarak 2 adet çoktan seçmeli, 1 adet klasik sınav sorusu ve cevaplarını üret:\n\n{chunk}"
             elif tool_name == "flashcard":
                 prompt = (
-                    f"Aşağıdaki not parçası (Kısım {index+1}) için sadece Soru-Cevap şeklinde flashcard kartları hazırla. "
-                    f"Her kartın başında mutlaka '### KART {index+1}' yazsın. Format tam olarak şu şekilde olsun:\n"
+                    f"Aşağıdaki not parçasından (Kısım {index+1}) sınavda çıkma ihtimali en yüksek olan "
+                    f"en kritik bilgileri seç ve SADECE 2-3 adet en kaliteli flashcard hazırla. Toplam kart sayısı çok az olmalı. "
+                    f"Her kartın başında mutlaka '### KART' yazsın. Format tam olarak şu şekilde olsun:\n"
                     f"**Soru:** [Soru buraya]\n"
                     f"**Cevap:** [Cevap buraya]\n\n"
                     f"Not parçası:\n{chunk}"

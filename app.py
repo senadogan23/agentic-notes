@@ -1,6 +1,7 @@
 from utils.file_manager import save_uploaded_file, read_file_content
 from utils.agent_brain import StudyAgent
 import streamlit as st  # Web arayüzünü oluşturmak için Streamlit kütüphanesini dahil ediyoruz.
+from fpdf import FPDF
 from dotenv import load_dotenv
 
 load_dotenv()  # .env dosyasını projenin en başında sisteme zorla yüklüyoruz
@@ -67,45 +68,73 @@ if uploaded_file is not None:
     st.subheader("💬 Asistan ile Canlı Sohbet")
 
     # Geçmiş mesajları ekrana basan döngü
+    # Geçmiş mesajları ekrana basan döngü
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
-            # Eğer asistan mesajı bir flashcard çıktısı ise özel kart tasarımı yap
             if message["role"] == "assistant" and "### KART" in message["content"]:
-                st.subheader("🗂️ Üretilen Bilgi Kartları")
+                st.subheader("🗂️ Sınav Dönemi Bilgi Kartların")
                 
-                # Çıktıyı kartlara bölüp listeliyoruz
                 raw_cards = message["content"].split("### KART")
+                card_count = 0
+                
+                # PDF Oluşturma Nesnesi (Türkçe karakter desteği için standart fontlar)
+                pdf = FPDF()
+                pdf.add_page()
+                pdf.set_font("Helvetica", "B", 16)
+                pdf.cell(40, 10, "Agentic-Notes - Flashcard Kartlari", ln=True)
+                pdf.ln(10)
+                pdf.set_font("Helvetica", size=12)
+
                 for raw_card in raw_cards:
                     if raw_card.strip():
+                        card_count += 1
                         card_content = raw_card.strip()
+                        
+                        # PDF için veriyi temizle ve ekle (Türkçe karakter uyumluluğu için basit temizlik)
+                        pdf_clean_content = card_content.replace("**Soru:**", "Soru:").replace("**Cevap:**", "Cevap:")
+                        pdf.multi_cell(0, 10, f"KART {card_count}\n{pdf_clean_content}\n")
+                        pdf.ln(5)
+
+                        # --- PREMIUM ESTETİK GÖRÜNÜM (Arayüz Kart Tasarımı) ---
                         st.markdown(
                             f"""
                             <div style="
-                                background-color: #262730; 
-                                padding: 20px; 
-                                border-radius: 10px; 
-                                border-left: 5px solid #FF4B4B; 
-                                margin-bottom: 15px;
-                                box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+                                background-color: #1E1E24; 
+                                padding: 22px; 
+                                border-radius: 12px; 
+                                border-left: 6px solid #FF4B4B; 
+                                margin-bottom: 18px;
+                                border-top: 1px solid #333;
+                                border-right: 1px solid #333;
+                                border-bottom: 1px solid #333;
+                                box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
                             ">
-                                <strong>🃏 KART</strong><br><br>
-                                {card_content}
+                                <span style="background-color: #FF4B4B; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.8em; font-weight: bold;">🃏 KART {card_count}</span>
+                                <div style="margin-top: 15px; font-size: 1.05em; line-height: 1.6;">
+                                    {card_content}
+                                </div>
                             </div>
                             """, 
                             unsafe_allow_html=True
                         )
                 
-                # --- BUGÜNÜN ZAFERİ: Markdown İndirme Butonu ---
-                st.write("---")
-                st.download_button(
-                    label="📥 Bu Kartları Markdown Olarak İndir",
-                    data=message["content"],
-                    file_name="agentic_notes_flashcards.md",
-                    mime="text/markdown",
-                    help="Kartları .md formatında indirerek dilediğin cihazda çalışabilirsin!"
-                )
+                # PDF'i hafızaya alıp indirmeye hazır hale getiriyoruz
+                pdf_bytes = pdf.output(dest='S')
+
+                # --- YENİ KULLANICI DOSTU AKSİYONLAR ---
+                col_down, col_more = st.columns([1, 1])
+                with col_down:
+                    st.download_button(
+                        label="📥 Kartları PDF Olarak İndir (Sınava Çalış)",
+                        data=pdf_bytes,
+                        file_name="ders_notu_flashcards.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                with col_more:
+                    if st.button("🔄 Daha Fazla Kart Üretmek İster misiniz?", use_container_width=True):
+                        st.info("💡 Notun diğer kısımlarından yeni kartlar üretmek için yukarıdaki butona tekrar basabilirsiniz!")
             else:
-                # Normal kullanıcı mesajları ve düz asistan yanıtları eski usul görünsün
                 st.markdown(message["content"])
 
     # Kullanıcıdan yeni mesaj alma alanı (Chat Input)
