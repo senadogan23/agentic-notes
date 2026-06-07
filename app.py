@@ -67,8 +67,7 @@ if uploaded_file is not None:
     st.write("---")
     st.subheader("💬 Asistan ile Canlı Sohbet")
 
-    # Geçmiş mesajları ekrana basan döngü
-    # Geçmiş mesajları ekrana basan döngü
+  # Geçmiş mesajları ekrana basan döngü
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant" and "### KART" in message["content"]:
@@ -77,7 +76,7 @@ if uploaded_file is not None:
                 raw_cards = message["content"].split("### KART")
                 card_count = 0
                 
-                # PDF Oluşturma Nesnesi (Türkçe karakter desteği için standart fontlar)
+                # PDF Nesnesi kurulumu
                 pdf = FPDF()
                 pdf.add_page()
                 pdf.set_font("Helvetica", "B", 16)
@@ -90,12 +89,25 @@ if uploaded_file is not None:
                         card_count += 1
                         card_content = raw_card.strip()
                         
-                        # PDF için veriyi temizle ve ekle (Türkçe karakter uyumluluğu için basit temizlik)
-                        pdf_clean_content = card_content.replace("**Soru:**", "Soru:").replace("**Cevap:**", "Cevap:")
+                        # --- TÜRKÇE KARAKTER TEMİZLİK HARİTASI ---
+                        # PDF fontunun patlamaması için Türkçe karakterleri standart harflere dönüştürüyoruz
+                        tr_map = str.maketrans({
+                            'ğ': 'g', 'Ğ': 'G',
+                            'ş': 's', 'Ş': 'S',
+                            'ı': 'i', 'İ': 'I',
+                            'ç': 'c', 'Ç': 'C',
+                            'ö': 'o', 'Ö': 'O',
+                            'ü': 'u', 'Ü': 'U'
+                        })
+                        
+                        # Metni temizle ve kalınlık işaretlerini (**) kaldır
+                        pdf_clean_content = card_content.translate(tr_map).replace("**Soru:**", "Soru:").replace("**Cevap:**", "Cevap:")
+                        
+                        # PDF'e güvenle yazdır (Artık çökme yapmaz)
                         pdf.multi_cell(0, 10, f"KART {card_count}\n{pdf_clean_content}\n")
                         pdf.ln(5)
 
-                        # --- PREMIUM ESTETİK GÖRÜNÜM (Arayüz Kart Tasarımı) ---
+                        # --- ARAYÜZ KART TASARIMI (Burada Türkçe karakterler serbest!) ---
                         st.markdown(
                             f"""
                             <div style="
@@ -118,10 +130,8 @@ if uploaded_file is not None:
                             unsafe_allow_html=True
                         )
                 
-                # PDF'i hafızaya alıp indirmeye hazır hale getiriyoruz
                 pdf_bytes = pdf.output(dest='S')
 
-                # --- YENİ KULLANICI DOSTU AKSİYONLAR ---
                 col_down, col_more = st.columns([1, 1])
                 with col_down:
                     st.download_button(
