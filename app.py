@@ -4,14 +4,24 @@ import streamlit as st  # Web arayüzünü oluşturmak için Streamlit kütüpha
 from fpdf import FPDF
 from dotenv import load_dotenv
 
-load_dotenv()  # .env dosyasını projenin en başında sisteme zorla yüklüyoruz
-
-# Tarayıcı sekmesinde görünecek olan sayfa başlığı, ikon ve sayfa düzenini (geniş ekran) ayarlıyoruz.
+# Sayfa ayarları Streamlit'te her zaman İLK sırada olmalıdır
 st.set_page_config(
     page_title="Agentic-Notes", 
     page_icon="🚀", 
     layout="wide"
 )
+
+# Dışarıdaki CSS dosyasını okuyan fonksiyon
+def load_css(file_name):
+    with open(file_name, "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+# CSS dosyamızı yüklüyoruz
+load_css("assets/style.css")
+
+load_dotenv()  # .env dosyasını projenin en başında sisteme zorla yüklüyoruz
+
+
 
 # Ana sayfa başlığı ve alt başlığı ekranda gösteriyoruz.
 st.title("Agentic-Notes: AI Agent Tabanlı Ders Asistanı")
@@ -67,16 +77,16 @@ if uploaded_file is not None:
     st.write("---")
     st.subheader("💬 Asistan ile Canlı Sohbet")
 
-  # Geçmiş mesajları ekrana basan döngü
+  # Geçmiş mesajları ekrana basan YENİ döngü
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant" and "### KART" in message["content"]:
-                st.subheader("🗂️ Sınav Dönemi Bilgi Kartların")
+                st.subheader("🗂️ Sınav Dönemi İnteraktif Bilgi Kartların")
+                st.caption("💡 Kartların üzerine gelerek veya tıklayarak arkasındaki cevapları görebilirsin!")
                 
                 raw_cards = message["content"].split("### KART")
                 card_count = 0
                 
-                # PDF Nesnesi kurulumu
                 pdf = FPDF()
                 pdf.add_page()
                 pdf.set_font("Helvetica", "B", 16)
@@ -84,54 +94,51 @@ if uploaded_file is not None:
                 pdf.ln(10)
                 pdf.set_font("Helvetica", size=12)
 
+                # HTML Grid Başlangıcı (Kare düzeni kuruyoruz)
+                grid_html = '<div class="flashcard-grid">'
+
                 for raw_card in raw_cards:
                     if raw_card.strip():
                         card_count += 1
                         card_content = raw_card.strip()
                         
-                        # --- TÜRKÇE KARAKTER TEMİZLİK HARİTASI ---
-                        # PDF fontunun patlamaması için Türkçe karakterleri standart harflere dönüştürüyoruz
-                        tr_map = str.maketrans({
-                            'ğ': 'g', 'Ğ': 'G',
-                            'ş': 's', 'Ş': 'S',
-                            'ı': 'i', 'İ': 'I',
-                            'ç': 'c', 'Ç': 'C',
-                            'ö': 'o', 'Ö': 'O',
-                            'ü': 'u', 'Ü': 'U'
-                        })
+                        # Metni Soru ve Cevap olarak ikiye bölüyoruz
+                        parts = card_content.split("**Cevap:**")
+                        soru_kısmi = parts[0].replace("**Soru:**", "").strip()
+                        cevap_kısmi = parts[1].strip() if len(parts) > 1 else "Cevap detaylandırılamadı."
                         
-                        # Metni temizle ve kalınlık işaretlerini (**) kaldır
-                        pdf_clean_content = card_content.translate(tr_map).replace("**Soru:**", "Soru:").replace("**Cevap:**", "Cevap:")
+                        # PDF için Türkçe karakter temizliği
+                        # Türkçe karakterleri ve Helvetica fontunun desteklemediği özel sembolleri temizler
+                        tr_map = str.maketrans({'ğ':'g','Ğ':'G','ş':'s','Ş':'S','ı':'i','İ':'I','ç':'c','Ç':'C','ö':'o','Ö':'O','ü':'u','Ü':'U'})
+                        safe_content = card_content.translate(tr_map).replace("**Soru:**", "Soru:").replace("**Cevap:**", "Cevap:")
                         
-                        # PDF'e güvenle yazdır (Artık çökme yapmaz)
+                        # Font hatası vermemesi için desteklenmeyen karakterleri filtreler
+                        pdf_clean_content = safe_content.encode('latin-1', 'ignore').decode('latin-1')
                         pdf.multi_cell(0, 10, f"KART {card_count}\n{pdf_clean_content}\n")
                         pdf.ln(5)
 
-                        # --- ARAYÜZ KART TASARIMI (Burada Türkçe karakterler serbest!) ---
-                        st.markdown(
-                            f"""
-                            <div style="
-                                background-color: #1E1E24; 
-                                padding: 22px; 
-                                border-radius: 12px; 
-                                border-left: 6px solid #FF4B4B; 
-                                margin-bottom: 18px;
-                                border-top: 1px solid #333;
-                                border-right: 1px solid #333;
-                                border-bottom: 1px solid #333;
-                                box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
-                            ">
-                                <span style="background-color: #FF4B4B; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.8em; font-weight: bold;">🃏 KART {card_count}</span>
-                                <div style="margin-top: 15px; font-size: 1.05em; line-height: 1.6;">
-                                    {card_content}
+                        # style.css dosyasındaki animasyonları tetikleyen HTML yapısı
+                        grid_html += f"""
+                        <div class="flip-card" tabindex="0">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <span class="card-tag" style="background-color: #FF4B4B;">🃏 KART {card_count}</span>
+                                    <div style="margin-top: 15px;">{soru_kısmi}</div>
+                                </div>
+                                <div class="flip-card-back">
+                                    <span class="card-tag" style="background-color: #4CAF50;">✅ CEVAP</span>
+                                    <div style="margin-top: 15px;">{cevap_kısmi}</div>
                                 </div>
                             </div>
-                            """, 
-                            unsafe_allow_html=True
-                        )
+                        </div>
+                        """
                 
+                grid_html += '</div>' # Grid Kapanış
+                st.markdown(grid_html, unsafe_allow_html=True) # Kartları ekrana matris olarak bas
+                
+                # PDF İndirme ve Daha Fazla Üret Butonları
                 pdf_bytes = pdf.output(dest='S')
-
+                st.write("---")
                 col_down, col_more = st.columns([1, 1])
                 with col_down:
                     st.download_button(
@@ -146,7 +153,6 @@ if uploaded_file is not None:
                         st.info("💡 Notun diğer kısımlarından yeni kartlar üretmek için yukarıdaki butona tekrar basabilirsiniz!")
             else:
                 st.markdown(message["content"])
-
     # Kullanıcıdan yeni mesaj alma alanı (Chat Input)
     if user_input := st.chat_input("Ders notu hakkında bir soru sorun..."):
         # Kullanıcının yazdığı mesajı hafızaya kaydet
