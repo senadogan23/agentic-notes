@@ -3,4 +3,4 @@ Sınav notlarını analiz eden, özet çıkaran ve akıllı soru türeten AI Age
 
 ## 📌 Güncel Durum / Notlar
 - [x] Model entegrasyonu tamamlandı.
-- [ ] Arayüz geliştirmelerine devam edilecek. (Yarın)
+- [ ] Arayüz geliştirmelerine devam edilecek. 
